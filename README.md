@@ -1,0 +1,55 @@
+# packer-AMI
+
+‌{
+ "variables": {
+   "build_version": "1.0.0",
+   "aws_source_ami": "ami-55ef662f",
+   "dev_aws_access_key": "AKIAIC7JIC35YNLYIZIQ",
+   "dev_aws_secret_key": "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",
+   "dev_aws_vpc_id": "vpc-bf23a6c7",
+   "dev_aws_subnet_id": "subnet-373bfc18",
+   "dev_aws_security_group": "sg-6ba2191e"
+ },
+
+ "provisioners": [
+   {
+     "type": "shell",
+     "inline": [ "mkdir -p /tmp/{rpms,files}" ]
+   },{
+     "type": "file",
+     "source": "/home/ec2-user/s3.txt",
+     "destination": "/tmp/file"
+   },{
+     "type": "file",
+     "source": "/home/ec2-user/s3size.txt",
+     "destination": "/home/ec2-user/training.txt"
+   }
+ ],
+
+ "builders": [
+   { "name": "AWS-DEV",
+     "type": "amazon-ebs",
+     "ssh_pty": true,
+     "access_key": "{{ user `dev_aws_access_key`}}",
+     "secret_key": "{{ user `dev_aws_secret_key`}}",
+     "source_ami": "{{ user `aws_source_ami`}}",
+     "ami_name": "ravi-training-v{{ user `build_version`}}-{{timestamp}}",
+     "tags":{
+        "Version": "{{ user `build_version`}}",
+        "Product": "General",
+        "Name": "ravi-training-v{{ user `build_version`}}",
+        "Foundational_AMI": "{{user `aws_source_ami`}}"
+     },
+     "ami_description": "ravi-training AMI, built at {{timestamp}} from MktPlc: {{ user `aws_source_ami`}}",
+     "ami_virtualization_type": "hvm",
+     "instance_type": "t2.micro",
+     "ssh_username": "ec2-user",
+     "vpc_id": "{{ user `dev_aws_vpc_id`}}",
+     "subnet_id": "{{user `dev_aws_subnet_id`}}",
+     "run_tags": {
+       "name": "packer.io CentOS"
+     },
+     "region": "us-east-1"
+   }
+ ]
+}
